@@ -6,7 +6,7 @@
   box-shadow:0 0 60px rgba(34,211,238,0.1),0 30px 60px rgba(0,0,0,0.6);
   z-index:9999;display:none;flex-direction:column;overflow:hidden;
   animation:chatSlideUp 0.35s cubic-bezier(0.2,1,0.3,1);
-}
+} 
 #chatbot-panel.show{display:flex;}
 @keyframes chatSlideUp{from{opacity:0;transform:translateY(30px) scale(0.96)}to{opacity:1;transform:translateY(0) scale(1)}}
 .chat-header{
