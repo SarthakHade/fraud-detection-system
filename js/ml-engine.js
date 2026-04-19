@@ -3,7 +3,7 @@
    Ported from core_model (3).ipynb & model_2 (2).ipynb
    ============================================================
    Feature Engineering → Prediction → Explainability
-   All processing is in-browser (air-gapped, no server needed)
+   All processing is in-browser (air-gapped, no server needed) 
    ============================================================ */
 
 /* ---- Global ML state ---- */
