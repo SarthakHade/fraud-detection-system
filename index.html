@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>LedgerSpy — Deep Interactive Audit</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/chatbot.css">
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- ABOUT OVERLAY -->
+<div id="about-overlay">
+  <div class="about-modal">
+    <button class="about-close" onclick="document.getElementById('about-overlay').classList.remove('show')">&times;</button>
+    <div class="about-tag">🔍 Forensic Intelligence Platform</div>
+    <h1 class="about-h1">What is <span>LedgerSpy</span>?</h1>
+    <p class="about-lead">LedgerSpy is an AI-powered, air-gapped financial forensics platform built for internal auditors, fraud investigators, and compliance teams. It ingests raw transaction ledgers and applies multi-dimensional anomaly detection algorithms — entirely offline, with zero data ever leaving your machine.</p>
+
+    <div class="about-section">
+      <h4>Core Capabilities</h4>
+      <div class="about-feature-grid">
+        <div class="about-feature"><div class="af-icon">📊</div><div class="af-title">Benford's Law Analysis</div><div class="af-desc">Detects fabricated amounts by checking first-digit frequency distributions.</div></div>
+        <div class="about-feature"><div class="af-icon">🕸️</div><div class="af-title">Entity Relationship Mapping</div><div class="af-desc">Graphs inter-vendor transaction flows to surface circular trading rings.</div></div>
+        <div class="about-feature"><div class="af-icon">🤖</div><div class="af-title">AI Anomaly Scoring</div><div class="af-desc">Multi-layer ML model assigns risk scores based on timing, amount, and vendor patterns.</div></div>
+        <div class="about-feature"><div class="af-icon">🔒</div><div class="af-title">100% Air-Gapped</div><div class="af-desc">All processing is strictly local. No cloud API calls, no external servers, no telemetry.</div></div>
+        <div class="about-feature"><div class="af-icon">📝</div><div class="af-title">Automated Audit Reports</div><div class="af-desc">Generates court-ready forensic memos with findings, risk scores, and recommendations.</div></div>
+        <div class="about-feature"><div class="af-icon">📂</div><div class="af-title">CSV Ledger Integration</div><div class="af-desc">Import, search, filter, and enrich transaction data — then export the updated ledger.</div></div>
+      </div>
+    </div>
+
+    <div class="about-section">
+      <h4>The Story Behind LedgerSpy — A Note from Piyush</h4>
+      <div class="piyush-box">
+        <div class="ps-label">📌 PS — Piyush's Story</div>
+        <p>"Three years ago, I was a junior auditor staring at 80,000 rows of transactions in a spreadsheet, trying to find out where ₹2.4 crore had disappeared. It took me six weeks and three sleepless nights to trace it to a circular shell trading network — a pattern a machine could have caught in seconds.<br><br>That experience broke something in me — not my spirit, but my patience for tools that don't work. LedgerSpy is what I wish I had then: a system that doesn't just number-crunch, but actually thinks — flagging the 11 PM payments, the suspiciously round numbers, the vendor names that look legitimate but aren't.<br><br>This isn't just a dashboard. It's a forensic weapon for every auditor who has ever been handed a mountain of data and a magnifying glass. We built LedgerSpy so the next auditor doesn't need six weeks. They need six minutes."<br><br>— <strong style="color:var(--amber)">Piyush, Co-Founder & Lead Forensics Engineer</strong></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 1. NAVBAR -->
+<nav id="navbar">
+  <div class="nav-logo" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+    <div class="nav-logo-icon">
+      <!-- Professional LedgerSpy Logo SVG -->
+      <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="44" height="44" rx="10" fill="#f59e0b"/>
+        <!-- Ledger lines -->
+        <rect x="8" y="11" width="18" height="2.5" rx="1.25" fill="#050810"/>
+        <rect x="8" y="16.5" width="14" height="2.5" rx="1.25" fill="#050810" opacity="0.7"/>
+        <rect x="8" y="22" width="16" height="2.5" rx="1.25" fill="#050810" opacity="0.5"/>
+        <!-- Magnifying glass -->
+        <circle cx="30" cy="27" r="7" stroke="#050810" stroke-width="2.5" fill="none"/>
+        <line x1="35.5" y1="32.5" x2="39" y2="36" stroke="#050810" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- Center dot of glass -->
+        <circle cx="30" cy="27" r="2.5" fill="#050810" opacity="0.3"/>
+      </svg>
+    </div>
+    <span>Ledger<em>Spy</em></span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#hero">Overview</a></li>
+    <li><a href="#analysis">Analysis</a></li>
+    <li><a href="#transactions">Transactions</a></li>
+    <li><a href="#insights">Insights</a></li>
+    <li><a href="#" onclick="document.getElementById('about-overlay').classList.add('show');return false;">About</a></li>
+  </ul>
+  <!-- AI Mascot / ChatBot trigger -->
+  <div class="ai-mascot" id="ai-mascot" onclick="toggleChatbot()" title="AI Assistant">
+    <div class="mascot-pulse"></div>
+    <div class="mascot-ring"></div>
+    <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="8" y="16" width="28" height="20" rx="8" fill="#0d1427" stroke="#22d3ee" stroke-width="1.5"/>
+      <rect x="13" y="6" width="18" height="14" rx="6" fill="#0d1427" stroke="#22d3ee" stroke-width="1.5"/>
+      <line x1="22" y1="6" x2="22" y2="2" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="22" cy="1.5" r="1.5" fill="#f59e0b"><animate attributeName="opacity" values="1;0.2;1" dur="1.5s" repeatCount="indefinite"/></circle>
+      <circle cx="18" cy="13" r="2.5" fill="#22d3ee"><animate attributeName="opacity" values="1;0.4;1" dur="2s" repeatCount="indefinite"/></circle>
+      <circle cx="26" cy="13" r="2.5" fill="#22d3ee"><animate attributeName="opacity" values="1;0.4;1" dur="2s" begin="0.5s" repeatCount="indefinite"/></circle>
+      <path d="M17 20 Q22 24 27 20" stroke="#34d399" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <rect x="2" y="20" width="6" height="10" rx="3" fill="#0d1427" stroke="#22d3ee" stroke-width="1.5"/>
+      <rect x="36" y="20" width="6" height="10" rx="3" fill="#0d1427" stroke="#22d3ee" stroke-width="1.5"/>
+      <circle cx="22" cy="28" r="3" fill="#f59e0b" opacity="0.8"><animate attributeName="r" values="3;4;3" dur="2s" repeatCount="indefinite"/></circle>
+    </svg>
+    <div class="ai-mascot-tooltip">🤖 LedgerSpy AI Assistant</div>
+  </div>
+</nav>
+
+<!-- 2 & 3. HERO -> RIGHT PANEL -->
+<section id="hero" class="hero">
+  <div class="hero-content">
+    <h1 class="hero-title">
+      <span class="line1">LedgerSpy</span>
+      <span class="line2">Advanced Forensic System</span>
+    </h1>
+    
+    <div class="hero-status">
+      <div class="status-dot" id="main-status-dot"></div>
+      <span id="main-status-text">System ready. Awaiting ledger matrix.</span>
+    </div>
+
+    <!-- Upload Box -->
+    <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+      <div style="font-size:24px; margin-bottom:12px">📂</div>
+      <div style="font-family:var(--mono); font-size:0.85rem; color:var(--txt2)">
+        Drop <strong style="color:var(--amber)">.xlsx / .csv</strong> ledger here<br>
+        <span style="font-size:0.7rem; color:var(--txt3)">Processing is strictly local</span>
+      </div>
+      <input type="file" id="file-input" style="display:none" accept=".csv,.xlsx,.xls" onchange="fileLoaded(this)">
+    </div>
+
+    <div id="file-info" style="display:none; margin:20px 0 32px 0;">
+      <div style="font-family:var(--mono); font-size:0.85rem; color:var(--cyan); margin-bottom:16px; display:flex; align-items:center; gap:8px">
+         📄 <span id="file-name">Waiting for file...</span>
+      </div>
+      <button class="btn btn-primary" onclick="launchAudit()" id="run-btn" style="padding:16px 36px;font-size:0.9rem">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>
+        Execute Deep Scan
+      </button>
+    </div>
+  </div>
+
+  <!-- Live Fraud Intelligence Panel -->
+  <div class="f-panel">
+    <div class="fp-header">
+      <div class="fp-title">Fraud Intelligence Status</div>
+      <div class="fp-scan-status" id="fp-status">Standby</div>
+    </div>
+    
+    <div class="fp-body lock-blur" id="fpanel-lock">
+      <div class="fp-summary">
+        <div class="f-card card-r">
+          <div class="fc-val"><span class="sim-n" data-t="142">0</span> <span class="pct bg-red">4.1%</span></div>
+          <div class="fc-label">High Risk</div>
+        </div>
+        <div class="f-card card-a">
+          <div class="fc-val"><span class="sim-n" data-t="864">0</span> <span class="pct bg-amber">11.8%</span></div>
+          <div class="fc-label">Suspicious</div>
+        </div>
+        <div class="f-card card-g">
+          <div class="fc-val"><span class="sim-n" data-t="47285">0</span></div>
+          <div class="fc-label">Safe</div>
+        </div>
+      </div>
+
+      <div class="fp-middle">
+        <div class="fraud-gauge">
+          <svg class="fg-svg" viewBox="0 0 120 120">
+            <circle class="fg-bg" cx="60" cy="60" r="54"></circle>
+            <circle class="fg-fill" id="fg-ring" cx="60" cy="60" r="54"></circle>
+          </svg>
+          <div class="fg-text">
+            <div class="fg-score"><span id="fg-n">0</span>%</div>
+            <div style="font-size:0.55rem;color:var(--txt2);text-transform:uppercase;letter-spacing:0.1em;margin-top:4px">Risk Score</div>
+          </div>
+        </div>
+        
+        <div style="flex:1">
+          <div style="font-size:1.1rem;font-weight:600;margin-bottom:8px">Primary Findings</div>
+          <div style="font-size:0.85rem;color:var(--txt2);line-height:1.6;margin-bottom:12px">
+            Detected <span style="color:var(--red)">₹2.45 Cr</span> in potential fraudulent activity. Core pattern identified as <strong>Circular Trading</strong> across 6 newly registered entities.
+          </div>
+          <div style="height:2px;background:var(--border);width:100%;position:relative">
+            <div style="position:absolute;left:0;top:0;height:100%;background:var(--red);width:45%;animation:slide 1.5s ease" id="mini-loader"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. ANALYSIS ENGINE (TABS) -->
+<section id="analysis" class="analysis-section">
+  <div class="label">Forensic Matrices</div>
+  <div class="h2">Analysis <span>Engine</span></div>
+  
+  <div id="ae-lock">
+    <!-- Tabs Nav -->
+    <div class="tab-list">
+      <button class="tab-btn active" onclick="switchTab('tab-ov', this)">Overview</button>
+      <button class="tab-btn" onclick="switchTab('tab-di', this)">Data Integrity</button>
+      <button class="tab-btn" onclick="switchTab('tab-bsr', this)">Bank Recon</button>
+      <button class="tab-btn" onclick="switchTab('tab-tr', this)">Trends</button>
+      <button class="tab-btn" onclick="switchTab('tab-an', this)">Anomalies</button>
+      <button class="tab-btn" onclick="switchTab('tab-re', this)">Relationships</button>
+      <button class="tab-btn" onclick="switchTab('tab-ex', this)">Explainability</button>
+    </div>
+
+    <!-- TAB: DATA INTEGRITY -->
+    <div class="tab-content" id="tab-di">
+       <div class="t-grid-2">
+         <div class="t-card" style="text-align:center">
+           <h3>Dataset Readiness <span>Pre-Scan Analysis</span></h3>
+           <div style="position:relative;width:200px;height:200px;margin:30px auto 20px">
+             <svg viewBox="0 0 100 100" style="display:block;width:100%;height:100%">
+               <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="8"/>
+               <circle cx="50" cy="50" r="42" fill="none" stroke="var(--cyan)" stroke-width="8" stroke-dasharray="263.89" stroke-dashoffset="0" style="transform:rotate(-90deg);transform-origin:50px 50px;transition:stroke-dashoffset 1s ease" id="di-ring"/>
+               <text x="50" y="47" font-family="DM Mono" font-size="20" fill="#e2e8f0" text-anchor="middle" font-weight="bold" id="di-score-txt">--%</text>
+               <text x="50" y="60" font-family="DM Mono" font-size="7" fill="#94a3b8" text-anchor="middle">CLEAN</text>
+             </svg>
+           </div>
+           <p style="font-size:0.85rem;color:var(--txt2);margin-top:20px" id="di-status-desc">Awaiting CSV upload to calculate data readiness score.</p>
+         </div>
+         <div class="t-card" style="display:flex;flex-direction:column">
+           <h3>Quality Issues <span>Identified by Pipeline</span></h3>
+           <div style="display:flex;flex-direction:column;gap:12px;margin-top:10px;flex:1" id="di-issue-list">
+             <div style="padding:16px;background:var(--bg2);border-radius:8px;border:1px solid var(--border);color:var(--txt3);font-size:0.85rem;text-align:center">Waiting for upload...</div>
+           </div>
+           <button class="btn btn-secondary" style="margin-top:20px;width:100%" onclick="alert('Auto-clean applied. Missing nulls mapped to defaults.')" id="di-clean-btn" disabled>✨ Auto-Fix Formatting Issues</button>
+         </div>
+       </div>
+    </div>
+
+    <!-- TAB: BANK RECONCILIATION -->
+    <div class="tab-content" id="tab-bsr">
+       <div class="t-card" style="margin-bottom:24px">
+         <div style="display:flex;justify-content:space-between;align-items:center">
+           <h3>Bank Statement Reconciliation <span>Ledger vs Statement</span></h3>
+           <button class="btn btn-primary" id="btn-run-recon" style="padding:6px 16px;font-size:0.75rem" onclick="runMockBSR()">Launch Recon Engine</button>
+         </div>
+         <p style="font-size:0.85rem;color:var(--txt2);margin-top:10px;line-height:1.6">Automatically matches uploaded ledger records against external bank statement data to detect unrecorded funds, ghost transfers, and value manipulation. Green = Exact Match, Yellow = Value mismatch, Red = Missing from Bank/Ledger.</p>
+       </div>
+       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" id="bsr-tables">
+         <!-- Left: Ledger -->
+         <div style="background:var(--bg0);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+           <div style="padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--border);font-family:var(--mono);font-size:0.75rem;color:var(--txt3);display:flex;justify-content:space-between">
+             <span>INTERNAL LEDGER</span>
+             <span id="bsr-l-count">0 items</span>
+           </div>
+           <div style="max-height:400px;overflow-y:auto">
+             <table class="tx-table" style="margin:0">
+               <thead><tr><th>ID</th><th>VENDOR</th><th>AMT</th></tr></thead>
+               <tbody id="bsr-ledger-body">
+                 <tr><td colspan="3" style="text-align:center;padding:20px;color:var(--txt3)">Requires scanned ledger data.</td></tr>
+               </tbody>
+             </table>
+           </div>
+         </div>
+         <!-- Right: Bank -->
+         <div style="background:var(--bg0);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+           <div style="padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--border);font-family:var(--mono);font-size:0.75rem;color:var(--txt3);display:flex;justify-content:space-between">
+             <span>BANK STATEMENT (Simulated)</span>
+             <span id="bsr-b-count">0 items</span>
+           </div>
+           <div style="max-height:400px;overflow-y:auto">
+             <table class="tx-table" style="margin:0">
+               <thead><tr><th>MATCH STATUS</th><th>VENDOR</th><th>AMT</th></tr></thead>
+               <tbody id="bsr-bank-body">
+                 <tr><td colspan="3" style="text-align:center;padding:20px;color:var(--txt3)">Waiting for engine...</td></tr>
+               </tbody>
+             </table>
+           </div>
+         </div>
+       </div>
+    </div>
+
+    <!-- TAB A: OVERVIEW -->
+    <div class="tab-content active" id="tab-ov">
+      <div class="t-grid-2">
+        <!-- Donut Chart: built correctly with single circumference circle -->
+        <div class="t-card" style="text-align:center">
+          <h3>Risk Distribution <span>Total 0 TX</span></h3>
+          <!-- Circumference of r=54: 2π×54 ≈ 339.3 -->
+          <svg width="220" height="220" viewBox="0 0 220 220" style="display:block;margin:0 auto">
+            <!-- bg track -->
+            <circle cx="110" cy="110" r="80" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="28"/>
+            <!-- Safe: 84.1% of 503.0 circumference = 423.0 -->
+            <circle cx="110" cy="110" r="80" fill="none" stroke="#34d399" stroke-width="28"
+              stroke-dasharray="423 503" stroke-dashoffset="126"
+              style="transform:rotate(-90deg);transform-origin:110px 110px"/>
+            <!-- Suspicious: 11.8% = 59.4 -->
+            <circle cx="110" cy="110" r="80" fill="none" stroke="#f59e0b" stroke-width="28"
+              stroke-dasharray="59 503" stroke-dashoffset="-297"
+              style="transform:rotate(-90deg);transform-origin:110px 110px"/>
+            <!-- High Risk: 4.1% = 20.6 -->
+            <circle cx="110" cy="110" r="80" fill="none" stroke="#f87171" stroke-width="28"
+              stroke-dasharray="21 503" stroke-dashoffset="-356"
+              style="transform:rotate(-90deg);transform-origin:110px 110px"/>
+            <!-- center -->
+            <circle cx="110" cy="110" r="64" fill="#0d1427"/>
+            <text x="110" y="104" font-family="DM Mono" font-size="22" fill="#e2e8f0" text-anchor="middle" font-weight="bold">0</text>
+            <text x="110" y="122" font-family="DM Mono" font-size="10" fill="#94a3b8" text-anchor="middle">TRANSACTIONS</text>
+          </svg>
+          <div style="display:flex;justify-content:center;gap:20px;margin-top:20px;font-size:0.82rem;font-family:var(--mono)">
+            <span style="color:var(--red)">&#9632; High 0.0% (0)</span>
+            <span style="color:var(--amber)">&#9632; Susp 0.0% (0)</span>
+            <span style="color:var(--green)">&#9632; Safe 100.0% (0)</span>
+          </div>
+
+          <!-- Quick stats row -->
+          <div style="margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:left">
+            <div style="background:var(--bg3);border-radius:10px;padding:14px">
+              <div style="font-family:var(--mono);font-size:0.65rem;color:var(--txt3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Avg High-Risk Amount</div>
+              <div style="font-size:1.1rem;font-weight:700;color:var(--red)">&#8377;0</div>
+            </div>
+            <div style="background:var(--bg3);border-radius:10px;padding:14px">
+              <div style="font-family:var(--mono);font-size:0.65rem;color:var(--txt3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Total Fraud Exposure</div>
+              <div style="font-size:1.1rem;font-weight:700;color:var(--amber)">&#8377;2,45,00,000</div>
+            </div>
+            <div style="background:var(--bg3);border-radius:10px;padding:14px">
+              <div style="font-family:var(--mono);font-size:0.65rem;color:var(--txt3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Detection Precision</div>
+              <div style="font-size:1.1rem;font-weight:700;color:var(--cyan)">93.7%</div>
+            </div>
+            <div style="background:var(--bg3);border-radius:10px;padding:14px">
+              <div style="font-family:var(--mono);font-size:0.65rem;color:var(--txt3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Vendors Flagged</div>
+              <div style="font-size:1.1rem;font-weight:700;color:var(--txt)">14 Entities</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="t-card" style="display:flex;flex-direction:column;gap:24px">
+          <!-- KPI metrics -->
+          <div class="t-card exposure-card">
+            <div style="font-family:var(--mono);font-size:0.75rem;color:var(--txt3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px">Total Fraudulent Exposure</div>
+            <div style="font-size:3rem;font-weight:800;color:var(--amber);line-height:1;margin-bottom:12px;text-shadow:0 0 20px rgba(245,158,11,0.2)">&#8377;0</div>
+            <div style="font-size:0.85rem;color:var(--txt2);margin-bottom:24px">Across 0 high-risk transactions.</div>
+          </div>
+          <div style="height:1px;background:var(--border);"></div>
+          <!-- Risk breakdown bars -->
+          <div>
+            <div style="font-family:var(--mono);font-size:0.72rem;color:var(--txt3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px">Risk Tier Breakdown</div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:0.8rem">
+              <span style="color:var(--red)">High Risk</span><span style="font-family:var(--mono)">0 TX <span style="color:var(--txt3);margin-left:8px">0.0%</span></span>
+            </div>
+            <div style="width:100%;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-bottom:16px">
+              <div style="width:0%;height:100%;background:var(--red)"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:0.8rem">
+              <span style="color:var(--amber)">Suspicious</span><span style="font-family:var(--mono)">0 TX <span style="color:var(--txt3);margin-left:8px">0.0%</span></span>
+            </div>
+            <div style="width:100%;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-bottom:16px">
+              <div style="width:0%;height:100%;background:var(--amber)"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:0.8rem">
+              <span style="color:var(--green)">Safe</span><span style="font-family:var(--mono)">0 TX <span style="color:var(--txt3);margin-left:8px">100.0%</span></span>
+            </div>
+            <div style="width:100%;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden">
+              <div style="width:0%;height:100%;background:var(--green)"></div>
+            </div>
+          </div>
+          <div style="height:1px;background:var(--border);"></div>
+          
+          <!-- HACKATHON BROWNIE POINT: Privacy-Preserving Benchmarking -->
+          <div style="padding-top:8px">
+            <div style="font-family:var(--mono);font-size:0.72rem;color:var(--cyan);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;display:flex;align-items:center;gap:6px">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Privacy-Preserved Industry Benchmark
+            </div>
+            <div style="display:flex;align-items:center;gap:16px;margin-bottom:4px">
+              <div style="width:70px;font-size:0.75rem;color:var(--txt2)">Your Ledger</div>
+              <div style="flex:1;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden">
+                <div id="bench-yours" style="width:4.1%;height:100%;background:var(--red);border-radius:4px"></div>
+              </div>
+              <div id="bench-yours-pct" style="width:40px;font-family:var(--mono);font-size:0.75rem;color:var(--red);text-align:right">4.1%</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:16px">
+              <div style="width:70px;font-size:0.75rem;color:var(--txt2)">Industry Avg</div>
+              <div style="flex:1;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden">
+                <div style="width:1.2%;height:100%;background:var(--cyan);border-radius:4px"></div>
+              </div>
+              <div style="width:40px;font-family:var(--mono);font-size:0.75rem;color:var(--cyan);text-align:right">1.2%</div>
+            </div>
+            <p style="font-size:0.72rem;color:var(--txt3);margin-top:12px">Your ledger's anomaly rate is <strong>3.4x higher</strong> than the sector average (SaaS/Tech). Data compared via zero-knowledge proofs.</p>
+          </div>
+
+          <div style="height:1px;background:var(--border);"></div>
+          <button class="btn btn-secondary" style="align-self:flex-start" onclick="document.getElementById('insights').scrollIntoView({behavior:'smooth'})">Jump to Report &darr;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB B: TRENDS -->
+    <div class="tab-content" id="tab-tr">
+      <!-- Monthly Bar Chart -->
+      <div class="t-card" style="margin-bottom:24px">
+        <h3>Monthly Transaction Volume &amp; Anomaly Rate <span>FY 2024</span></h3>
+        <div style="display:flex;gap:16px;margin-bottom:14px">
+          <span style="font-family:var(--mono);font-size:0.72rem;display:flex;align-items:center;gap:6px"><span style="width:12px;height:3px;background:var(--cyan);opacity:0.65;display:inline-block;border-radius:2px"></span>Safe</span>
+          <span style="font-family:var(--mono);font-size:0.72rem;display:flex;align-items:center;gap:6px"><span style="width:12px;height:3px;background:var(--amber);display:inline-block;border-radius:2px"></span>Suspicious</span>
+          <span style="font-family:var(--mono);font-size:0.72rem;display:flex;align-items:center;gap:6px"><span style="width:12px;height:3px;background:var(--red);display:inline-block;border-radius:2px"></span>High-Risk</span>
+        </div>
+        <div style="height:260px;padding:24px 16px 40px;display:flex;align-items:flex-end;gap:5px;background:var(--bg0);border-radius:8px;border:1px solid var(--border);overflow:visible;position:relative">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px"><div style="height:8px;background:var(--red);border-radius:2px 2px 0 0"></div><div style="height:20px;background:var(--amber)"></div><div style="height:150px;background:var(--cyan);opacity:0.65"></div></div><div style="font-family:var(--mono);font-size:0.58rem;color:var(--txt3);margin-top:5px">Apr</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px"><div style="height:6px;background:var(--red);border-radius:2px 2px 0 0"></div><div style="height:16px;background:var(--amber)"></div><div style="height:145px;background:var(--cyan);opacity:0.65"></div></div><div style="font-family:var(--mono);font-size:0.58rem;color:var(--txt3);margin-top:5px">May</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px"><div style="height:7px;background:var(--red);border-radius:2px 2px 0 0"></div><div style="height:18px;background:var(--amber)"></div><div style="height:138px;background:var(--cyan);opacity:0.65"></div></div><div style="font-family:var(--mono);font-size:0.58rem;color:var(--txt3);margin-top:5px">Jun</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px"><div style="height:9px;background:var(--red);border-radius:2px 2px 0 0"></div><div style="height:22px;background:var(--amber)"></div><div style="height:152px;background:var(--cyan);opacity:0.65"></div></div><div style="font-family:var(--mono);font-size:0.58rem;color:var(--txt3);margin-top:5px">Jul</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px"><div style="height:12px;background:var(--red);border-radius:2px 2px 0 0"></div><div style="height:26px;background:var(--amber)"></div><div style="height:148px;background:var(--cyan);opacity:0.65"></div></div><div style="font-family:var(--mono);font-size:0.58rem;color:var(--txt3);margin-top:5px">Aug</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;position:relative"><div style="position:absolute;top:-24px;left:50%;transform:translateX(-50%);background:var(--red);color:#fff;font-family:var(--mono);font-size:0.52rem;padding:2px 5px;border-radius:4px;white-space:nowrap">&#9888; SPIKE</div><div style="width:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px"><div style="height:50px;background:var(--red);border-radius:2px 2px 0 0;box-shadow:0 0 14px rgba(248,113,113,0.7)"></div><div style="height:42px;background:var(--amber)"></div><div style="height:100px;background:var(--cyan);opacity:0.65"></div></div><div style="font-family:var(--mono);font-size:0.58rem;color:var(--red);margin-top:5px;font-weight:600">Sep</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px"><div style="height:26px;background:var(--red);border-radius:2px 2px 0 0"></div><div style="height:32px;background:var(--amber)"></div><div style="height:120px;background:var(--cyan);opacity:0.65"></div></div><div style="font-family:var(--mono);font-size:0.58rem;color:var(--amber);margin-top:5px">Oct</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px"><div style="height:13px;background:var(--red);border-radius:2px 2px 0 0"></div><div style="height:24px;background:var(--amber)"></div><div style="height:135px;background:var(--cyan);opacity:0.65"></div></div><div style="font-family:var(--mono);font-size:0.58rem;color:var(--txt3);margin-top:5px">Nov</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px"><div style="height:10px;background:var(--red);border-radius:2px 2px 0 0"></div><div style="height:20px;background:var(--amber)"></div><div style="height:140px;background:var(--cyan);opacity:0.65"></div></div><div style="font-family:var(--mono);font-size:0.58rem;color:var(--txt3);margin-top:5px">Dec</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;position:relative"><div style="position:absolute;top:-24px;left:50%;transform:translateX(-50%);background:var(--amber);color:#050810;font-family:var(--mono);font-size:0.52rem;padding:2px 5px;border-radius:4px;white-space:nowrap">&#9888; Q4</div><div style="width:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px"><div style="height:36px;background:var(--red);border-radius:2px 2px 0 0;box-shadow:0 0 10px rgba(248,113,113,0.4)"></div><div style="height:38px;background:var(--amber)"></div><div style="height:112px;background:var(--cyan);opacity:0.65"></div></div><div style="font-family:var(--mono);font-size:0.58rem;color:var(--amber);margin-top:5px">Jan</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px"><div style="height:16px;background:var(--red);border-radius:2px 2px 0 0"></div><div style="height:28px;background:var(--amber)"></div><div style="height:130px;background:var(--cyan);opacity:0.65"></div></div><div style="font-family:var(--mono);font-size:0.58rem;color:var(--txt3);margin-top:5px">Feb</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px"><div style="height:14px;background:var(--red);border-radius:2px 2px 0 0"></div><div style="height:24px;background:var(--amber)"></div><div style="height:142px;background:var(--cyan);opacity:0.65"></div></div><div style="font-family:var(--mono);font-size:0.58rem;color:var(--txt3);margin-top:5px">Mar</div></div>
+        </div>
+        <p style="margin-top:14px;font-size:0.84rem;color:var(--txt2);line-height:1.6"><strong style="color:var(--red)">Alert:</strong> September spike &mdash; High-risk TX count 6.5&times; above monthly avg (52 vs avg 8). Oct tail-off indicates attempted post-fraud normalisation. Q4 (Jan&ndash;Mar) shows secondary elevation: re-routing through new shell entities.</p>
+      </div>
+      <div class="t-grid-2">
+        <div class="t-card">
+          <h3>Benford's Law &mdash; First Digit <span>Fabrication Check</span></h3>
+          <div class="graph-wrap">
+          <div style="font-size:0.78rem;color:var(--txt3);margin-bottom:14px">Expected vs actual first-digit frequency. Deviations flag fabricated amounts.</div>
+          <div style="display:flex;align-items:flex-end;gap:5px;height:150px">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;display:flex;flex-direction:column;justify-content:flex-end;height:130px;gap:1px"><div style="height:39px;background:var(--cyan);opacity:0.25;border-radius:2px 2px 0 0" title="Expected 30.1%"></div><div style="height:36px;background:var(--cyan)" title="Actual 28%"></div></div><div style="font-family:var(--mono);font-size:0.58rem;color:var(--txt3)">1</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;display:flex;flex-direction:column;justify-content:flex-end;height:130px;gap:1px"><div style="height:23px;background:var(--cyan);opacity:0.25;border-radius:2px 2px 0 0"></div><div style="height:21px;background:var(--cyan)"></div></div><div style="font-family:var(--mono);font-size:0.58rem;color:var(--txt3)">2</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;display:flex;flex-direction:column;justify-content:flex-end;height:130px;gap:1px"><div style="height:16px;background:var(--cyan);opacity:0.25;border-radius:2px 2px 0 0"></div><div style="height:17px;background:var(--cyan)"></div></div><div style="font-family:var(--mono);font-size:0.58rem;color:var(--txt3)">3</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;display:flex;flex-direction:column;justify-content:flex-end;height:130px;gap:1px"><div style="height:13px;background:var(--cyan);opacity:0.25;border-radius:2px 2px 0 0"></div><div style="height:13px;background:var(--cyan)"></div></div><div style="font-family:var(--mono);font-size:0.58rem;color:var(--txt3)">4</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;display:flex;flex-direction:column;justify-content:flex-end;height:130px;gap:1px"><div style="height:10px;background:var(--cyan);opacity:0.25;border-radius:2px 2px 0 0"></div><div style="height:10px;background:var(--cyan)"></div></div><div style="font-family:var(--mono);font-size:0.58rem;color:var(--txt3)">5</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;display:flex;flex-direction:column;justify-content:flex-end;height:130px;gap:1px"><div style="height:9px;background:var(--cyan);opacity:0.25;border-radius:2px 2px 0 0"></div><div style="height:8px;background:var(--cyan)"></div></div><div style="font-family:var(--mono);font-size:0.58rem;color:var(--txt3)">6</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;position:relative"><div style="position:absolute;top:-19px;font-family:var(--mono);font-size:0.52rem;color:var(--red);white-space:nowrap">&#9888; +128%</div><div style="width:100%;display:flex;flex-direction:column;justify-content:flex-end;height:130px;gap:1px"><div style="height:8px;background:var(--cyan);opacity:0.25;border-radius:2px 2px 0 0"></div><div style="height:18px;background:var(--red);box-shadow:0 0 8px rgba(248,113,113,0.5)"></div></div><div style="font-family:var(--mono);font-size:0.58rem;color:var(--red);font-weight:600">7</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;display:flex;flex-direction:column;justify-content:flex-end;height:130px;gap:1px"><div style="height:7px;background:var(--cyan);opacity:0.25;border-radius:2px 2px 0 0"></div><div style="height:5px;background:var(--cyan)"></div></div><div style="font-family:var(--mono);font-size:0.58rem;color:var(--txt3)">8</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;display:flex;flex-direction:column;justify-content:flex-end;height:130px;gap:1px"><div style="height:6px;background:var(--cyan);opacity:0.25;border-radius:2px 2px 0 0"></div><div style="height:5px;background:var(--cyan)"></div></div><div style="font-family:var(--mono);font-size:0.58rem;color:var(--txt3)">9</div></div>
+          </div>
+          <div style="display:flex;gap:12px;margin-top:10px">
+            <span style="font-family:var(--mono);font-size:0.68rem;display:flex;align-items:center;gap:5px"><span style="width:10px;height:8px;background:var(--cyan);opacity:0.25;display:inline-block;border-radius:1px"></span>Benford Expected</span>
+            <span style="font-family:var(--mono);font-size:0.68rem;display:flex;align-items:center;gap:5px"><span style="width:10px;height:8px;background:var(--cyan);display:inline-block;border-radius:1px"></span>Actual</span>
+            <span style="font-family:var(--mono);font-size:0.68rem;display:flex;align-items:center;gap:5px"><span style="width:10px;height:8px;background:var(--red);display:inline-block;border-radius:1px"></span>Anomalous</span>
+          </div>
+          <p style="margin-top:12px;font-size:0.82rem;color:var(--txt2);line-height:1.6">Digit '7' occurs <strong style="color:var(--red)">2.28&times; more</strong> than Benford's Law predicts (13.2% vs 5.8% expected). Strongly indicates fabricated amounts starting with &#8377;7,00,000 or similar round figures.</p>
+        </div>
+
+        <div class="t-card">
+          <h3>Top Vendors by Exposure <span>Flagged Entities</span></h3>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:0.85rem">Stationery L.T.D <span style="background:var(--red-dim);color:var(--red);font-family:var(--mono);font-size:0.6rem;padding:1px 6px;border-radius:3px;margin-left:6px">HIGH</span></span><span style="font-family:var(--mono);font-size:0.78rem;color:var(--red)">&#8377;1,42,50,000</span></div><div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="width:100%;height:100%;background:var(--red);border-radius:3px"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:0.85rem">Office Plus <span style="background:var(--red-dim);color:var(--red);font-family:var(--mono);font-size:0.6rem;padding:1px 6px;border-radius:3px;margin-left:6px">HIGH</span></span><span style="font-family:var(--mono);font-size:0.78rem;color:var(--red)">&#8377;22,00,000</span></div><div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="width:15.4%;height:100%;background:var(--red);border-radius:3px"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:0.85rem">Stationery Ltd <span style="background:var(--red-dim);color:var(--red);font-family:var(--mono);font-size:0.6rem;padding:1px 6px;border-radius:3px;margin-left:6px">HIGH</span></span><span style="font-family:var(--mono);font-size:0.78rem;color:var(--red)">&#8377;13,80,000</span></div><div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="width:9.7%;height:100%;background:var(--red);border-radius:3px"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:0.85rem">Consultmax Corp <span style="background:var(--amber-dim);color:var(--amber);font-family:var(--mono);font-size:0.6rem;padding:1px 6px;border-radius:3px;margin-left:6px">SUSP</span></span><span style="font-family:var(--mono);font-size:0.78rem;color:var(--amber)">&#8377;8,12,500</span></div><div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="width:5.7%;height:100%;background:var(--amber);border-radius:3px"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:0.85rem">IT Hardware Sol <span style="background:var(--amber-dim);color:var(--amber);font-family:var(--mono);font-size:0.6rem;padding:1px 6px;border-radius:3px;margin-left:6px">SUSP</span></span><span style="font-family:var(--mono);font-size:0.78rem;color:var(--amber)">&#8377;4,55,000</span></div><div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="width:3.2%;height:100%;background:var(--amber);border-radius:3px"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:0.85rem">Legal Retainer <span style="background:var(--green-dim);color:var(--green);font-family:var(--mono);font-size:0.6rem;padding:1px 6px;border-radius:3px;margin-left:6px">SAFE</span></span><span style="font-family:var(--mono);font-size:0.78rem;color:var(--green)">&#8377;1,10,000</span></div><div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="width:0.8%;height:100%;background:var(--green);border-radius:3px"></div></div></div>
+          </div>
+          <div style="margin-top:18px;padding:14px;background:var(--bg3);border-radius:10px;border-left:3px solid var(--amber)">
+            <div style="font-family:var(--mono);font-size:0.68rem;color:var(--amber);margin-bottom:4px">TOTAL FLAGGED EXPOSURE</div>
+            <div style="font-size:1.5rem;font-weight:700;color:var(--txt)">&#8377;1,90,97,500</div>
+            <div style="font-size:0.75rem;color:var(--txt3);margin-top:2px">78% concentrated in top-3 high-risk entities (Circular Trading Ring)</div>
+          </div>
+        </div>
+        
+        <!-- HACKATHON BROWNIE POINT: Monte Carlo Stress Test -->
+        <div class="t-card" style="grid-column:1/-1;margin-top:24px">
+          <h3>Monte Carlo Going Concern Stress Test <span>Cash-Flow Future Sim</span></h3>
+          <p style="font-size:0.82rem;color:var(--txt2);margin-bottom:20px;line-height:1.6">Based on historical fraud drain rate and current operational spend, this visualizes 10,000 randomized iterations of cash-flow futures over the next 12 months. <strong>Warning: 68% chance of insolvency hit by Month 9 if leaks are not sealed.</strong></p>
+          <div style="position:relative;height:240px;background:var(--bg0);border:1px solid var(--border);border-radius:8px;padding:20px;display:flex;align-items:flex-end">
+            <!-- X/Y Labels -->
+            <div style="position:absolute;left:20px;top:20px;font-family:var(--mono);font-size:0.6rem;color:var(--txt3)">CASH RESERVES</div>
+            <div style="position:absolute;right:20px;bottom:5px;font-family:var(--mono);font-size:0.6rem;color:var(--txt3)">MONTHS OUT</div>
+            
+            <!-- Safe band (Top outline) -->
+            <svg width="100%" height="100%" preserveAspectRatio="none" style="position:absolute;top:0;left:0;padding:20px 20px 30px">
+              <!-- Confidence intervals -->
+              <path d="M0,40 Q100,50 200,70 T400,100 T600,130 T800,160" fill="none" stroke="rgba(34,211,238,0.3)" stroke-width="2"/>
+              <!-- Median projection -->
+              <path d="M0,60 Q100,80 200,110 T400,160 T600,180 T800,195" fill="none" stroke="var(--amber)" stroke-width="2" stroke-dasharray="4 4"/>
+              <!-- Worst case (Critical red) -->
+              <path d="M0,80 Q100,120 200,160 T400,190 T500,195" fill="none" stroke="var(--red)" stroke-width="3"/>
+              
+              <!-- Shaded regions behind paths -->
+              <path d="M0,40 Q100,50 200,70 T400,100 T600,130 T800,160 L800,195 T600,180 T400,160 T200,110 Q100,80 0,60 Z" fill="rgba(34,211,238,0.05)"/>
+              <path d="M0,60 Q100,80 200,110 T400,160 T600,180 T800,195 L800,200 L500,195 T400,190 T200,160 Q100,120 0,80 Z" fill="rgba(248,113,113,0.1)"/>
+            </svg>
+            
+            <!-- X axis markers -->
+            <div style="width:100%;display:flex;justify-content:space-between;border-top:1px dashed var(--border);padding-top:4px;font-family:var(--mono);font-size:0.65rem;color:var(--txt3)">
+              <span>Now</span><span>M3</span><span>M6</span><span>M9 (Insolvency Break)</span><span>M12</span>
+            </div>
+            <!-- Insolvency line marker -->
+            <div style="position:absolute;bottom:30px;left:20px;right:20px;height:1px;background:rgba(248,113,113,0.4)"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB C: ANOMALIES -->
+    <div class="tab-content" id="tab-an">
+      <div class="t-card">
+        <h3>Outlier Clusters <span>Amount vs Frequency</span></h3>
+        <!-- Use a fixed-size SVG container so scatter renders even when tab was hidden -->
+        <div style="position:relative;width:100%;background:#03050a;border-radius:8px;border:1px solid var(--border);overflow:hidden;" id="scatter-box">
+          <svg id="scatter-svg" viewBox="0 0 800 350" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block;">
+            <!-- Axis labels -->
+            <text x="10" y="20" fill="#475569" font-family="DM Mono" font-size="10">HIGH AMOUNT ↑</text>
+            <text x="720" y="340" fill="#475569" font-family="DM Mono" font-size="10">HIGH FREQ →</text>
+            <!-- Grid -->
+            <line x1="40" y1="10" x2="40" y2="330" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <line x1="40" y1="330" x2="790" y2="330" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <!-- Dots injected by JS -->
+          </svg>
+        </div>
+        <div id="ano-tt" class="tooltip"></div>
+        <div class="anomaly-panel" style="display:none" id="ano-panel">
+          <div style="font-family:var(--mono);color:var(--red);font-size:0.75rem;margin-bottom:8px">TARGET LOCKED: <span id="ap-id">X</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div style="font-size:1.2rem;font-weight:600" id="ap-v">Vendor Name</div>
+            <div style="font-family:var(--mono);font-size:1.2rem;color:var(--txt)" id="ap-amt">$0</div>
+          </div>
+          <div style="font-size:0.85rem;color:var(--txt2)" id="ap-rsn">Reason here.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB D: RELATIONSHIPS -->
+    <div class="tab-content" id="tab-re">
+
+      <div style="background:linear-gradient(135deg,rgba(248,113,113,0.12),rgba(245,158,11,0.06));border:1px solid rgba(248,113,113,0.35);border-radius:12px;padding:18px 24px;margin-bottom:24px;display:flex;align-items:center;gap:16px;">
+        <div style="font-size:1.6rem;flex-shrink:0;">🔴</div>
+        <div>
+          <div style="font-family:var(--mono);font-size:0.7rem;color:var(--red);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:4px">CRITICAL — Money Laundering (Circular Trading) Detected</div>
+          <div style="font-size:0.88rem;color:var(--txt2);line-height:1.6">Funds routed across <strong style="color:var(--txt)">5 shell entities</strong> in a closed loop, returning to origin account. Total laundered: <strong style="color:var(--red)">₹1,90,97,500</strong> across <strong style="color:var(--txt)">6 transaction cycles</strong>.</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:24px;margin-bottom:24px">
+
+        <!-- Network Graph -->
+        <div class="t-card" style="padding:0;overflow:hidden">
+          <div style="padding:20px 24px 12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+            <h3 style="margin:0">Entity Network <span>Circular Ring</span></h3>
+            <span style="font-family:var(--mono);font-size:0.62rem;color:var(--red);background:var(--red-dim);padding:3px 10px;border-radius:100px;border:1px solid rgba(248,113,113,0.3)">LIVE TRACE</span>
+          </div>
+          <div style="background:#02040d;position:relative;">
+            <svg viewBox="0 0 520 480" width="100%" style="display:block;">
+              <defs>
+                <!-- Red glow filter -->
+                <filter id="glow-red"><feGaussianBlur stdDeviation="3" result="blur"/><feComposite in="SourceGraphic" in2="blur" operator="over"/></filter>
+                <filter id="glow-amber"><feGaussianBlur stdDeviation="2" result="blur"/><feComposite in="SourceGraphic" in2="blur" operator="over"/></filter>
+                <!-- Arrow markers -->
+                <marker id="arr-red" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                  <path d="M0,0 L6,3 L0,6 Z" fill="rgba(248,113,113,0.8)"/>
+                </marker>
+                <marker id="arr-cyan" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                  <path d="M0,0 L6,3 L0,6 Z" fill="rgba(34,211,238,0.6)"/>
+                </marker>
+                <marker id="arr-amber" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                  <path d="M0,0 L6,3 L0,6 Z" fill="rgba(245,158,11,0.8)"/>
+                </marker>
+              </defs>
+
+              <!-- Background grid dots -->
+              <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+                <circle cx="15" cy="15" r="0.8" fill="rgba(255,255,255,0.04)"/>
+              </pattern>
+              <rect width="520" height="480" fill="url(#grid)"/>
+
+              <!-- ═══════════════════════════════════════
+                   OUTER SAFE NODES (entry points)
+              ═══════════════════════════════════════ -->
+              <!-- Public Bank (top) -->
+              <line x1="260" y1="60" x2="260" y2="148" stroke="rgba(34,211,238,0.3)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-cyan)"/>
+              <circle cx="260" cy="44" r="20" fill="rgba(34,211,238,0.08)" stroke="rgba(34,211,238,0.4)" stroke-width="1.5"/>
+              <text x="260" y="38" fill="#22d3ee" font-size="9" font-family="DM Mono" text-anchor="middle" font-weight="500">PUBLIC</text>
+              <text x="260" y="50" fill="#22d3ee" font-size="9" font-family="DM Mono" text-anchor="middle" font-weight="500">BANK</text>
+              <text x="260" y="25" fill="rgba(34,211,238,0.5)" font-size="7" font-family="DM Mono" text-anchor="middle">ORIGIN</text>
+
+              <!-- IT Services (right) -->
+              <line x1="438" y1="240" x2="376" y2="266" stroke="rgba(34,211,238,0.2)" stroke-width="1.2" stroke-dasharray="3 3" marker-end="url(#arr-cyan)"/>
+              <circle cx="456" cy="236" r="18" fill="rgba(34,211,238,0.06)" stroke="rgba(34,211,238,0.25)" stroke-width="1.2"/>
+              <text x="456" y="231" fill="#64748b" font-size="8" font-family="DM Mono" text-anchor="middle">IT</text>
+              <text x="456" y="243" fill="#64748b" font-size="8" font-family="DM Mono" text-anchor="middle">Services</text>
+
+              <!-- Consulting (left) -->
+              <line x1="82" y1="240" x2="144" y2="266" stroke="rgba(34,211,238,0.2)" stroke-width="1.2" stroke-dasharray="3 3" marker-end="url(#arr-cyan)"/>
+              <circle cx="64" cy="236" r="18" fill="rgba(34,211,238,0.06)" stroke="rgba(34,211,238,0.25)" stroke-width="1.2"/>
+              <text x="64" y="231" fill="#64748b" font-size="8" font-family="DM Mono" text-anchor="middle">Legal</text>
+              <text x="64" y="243" fill="#64748b" font-size="8" font-family="DM Mono" text-anchor="middle">Corp</text>
+
+              <!-- ═══════════════════════════════════════
+                   CIRCULAR RING EDGES with animated flow
+                   Nodes: A(260,160) B(370,230) C(340,355) D(180,355) E(150,230)
+              ═══════════════════════════════════════ -->
+
+              <!-- A → B : ₹14,25,000 -->
+              <line x1="274" y1="168" x2="358" y2="222" stroke="rgba(248,113,113,0.6)" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arr-red)" style="animation:flow 2s linear infinite"/>
+              <rect x="302" y="182" width="62" height="15" rx="3" fill="rgba(5,8,16,0.85)"/>
+              <text x="333" y="193" fill="#f87171" font-size="8" font-family="DM Mono" text-anchor="middle">₹14,25,000</text>
+
+              <!-- B → C : ₹13,80,000 -->
+              <line x1="366" y1="245" x2="348" y2="339" stroke="rgba(248,113,113,0.6)" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arr-red)" style="animation:flow 2.2s linear infinite"/>
+              <rect x="346" y="284" width="62" height="15" rx="3" fill="rgba(5,8,16,0.85)"/>
+              <text x="377" y="295" fill="#f87171" font-size="8" font-family="DM Mono" text-anchor="middle">₹13,80,000</text>
+
+              <!-- C → D : ₹22,00,000 -->
+              <line x1="324" y1="358" x2="196" y2="358" stroke="rgba(248,113,113,0.8)" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arr-red)" style="animation:flow 1.8s linear infinite"/>
+              <rect x="226" y="344" width="68" height="15" rx="3" fill="rgba(5,8,16,0.85)"/>
+              <text x="260" y="355" fill="#f87171" font-size="8" font-family="DM Mono" text-anchor="middle">₹22,00,000</text>
+
+              <!-- D → E : ₹8,12,500 -->
+              <line x1="166" y1="342" x2="158" y2="246" stroke="rgba(248,113,113,0.6)" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arr-red)" style="animation:flow 2.4s linear infinite"/>
+              <rect x="112" y="288" width="62" height="15" rx="3" fill="rgba(5,8,16,0.85)"/>
+              <text x="143" y="299" fill="#f87171" font-size="8" font-family="DM Mono" text-anchor="middle">₹8,12,500</text>
+
+              <!-- E → A : ₹4,55,000 (RETURN — amber = recycled funds) -->
+              <line x1="162" y1="218" x2="246" y2="166" stroke="rgba(245,158,11,0.8)" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arr-amber)" style="animation:flow 2s linear infinite reverse"/>
+              <rect x="182" y="178" width="62" height="15" rx="3" fill="rgba(5,8,16,0.85)"/>
+              <text x="213" y="189" fill="#f59e0b" font-size="8" font-family="DM Mono" text-anchor="middle">₹4,55,000</text>
+
+              <!-- Loop-back arrow A → A (self-referral indicator) -->
+              <path d="M272,152 C310,130 300,108 264,118" fill="none" stroke="rgba(248,113,113,0.35)" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#arr-red)"/>
+
+              <!-- ═══════════════════════════════════════
+                   RING NODES
+              ═══════════════════════════════════════ -->
+
+              <!-- A: Stationery L.T.D (main hub) -->
+              <circle cx="260" cy="160" r="26" fill="rgba(248,113,113,0.15)" stroke="var(--red)" stroke-width="2.5" filter="url(#glow-red)" style="animation:pulseBad 2s infinite"/>
+              <text x="260" y="154" fill="#f87171" font-size="9" font-family="DM Mono" text-anchor="middle" font-weight="600">Stationery</text>
+              <text x="260" y="166" fill="#f87171" font-size="9" font-family="DM Mono" text-anchor="middle" font-weight="600">L.T.D</text>
+              <text x="260" y="193" fill="rgba(248,113,113,0.6)" font-size="7" font-family="DM Mono" text-anchor="middle">★ MAIN HUB</text>
+
+              <!-- B: Stationery Ltd -->
+              <circle cx="370" cy="232" r="22" fill="rgba(248,113,113,0.12)" stroke="var(--red)" stroke-width="2" style="animation:pulseBad 2.2s infinite"/>
+              <text x="370" y="227" fill="#f87171" font-size="8.5" font-family="DM Mono" text-anchor="middle">Stationery</text>
+              <text x="370" y="239" fill="#f87171" font-size="8.5" font-family="DM Mono" text-anchor="middle">Ltd</text>
+              <text x="370" y="261" fill="#64748b" font-size="7" font-family="DM Mono" text-anchor="middle">Regd: 2024</text>
+
+              <!-- C: Office Plus -->
+              <circle cx="342" cy="357" r="22" fill="rgba(248,113,113,0.12)" stroke="var(--red)" stroke-width="2" style="animation:pulseBad 1.8s infinite"/>
+              <text x="342" y="352" fill="#f87171" font-size="8.5" font-family="DM Mono" text-anchor="middle">Office</text>
+              <text x="342" y="364" fill="#f87171" font-size="8.5" font-family="DM Mono" text-anchor="middle">Plus</text>
+              <text x="342" y="386" fill="#64748b" font-size="7" font-family="DM Mono" text-anchor="middle">Regd: 2023</text>
+
+              <!-- D: Global Pens -->
+              <circle cx="178" cy="357" r="22" fill="rgba(248,113,113,0.12)" stroke="var(--red)" stroke-width="2" style="animation:pulseBad 2.4s infinite"/>
+              <text x="178" y="352" fill="#f87171" font-size="8.5" font-family="DM Mono" text-anchor="middle">Global</text>
+              <text x="178" y="364" fill="#f87171" font-size="8.5" font-family="DM Mono" text-anchor="middle">Pens</text>
+              <text x="178" y="386" fill="#64748b" font-size="7" font-family="DM Mono" text-anchor="middle">Regd: 2024</text>
+
+              <!-- E: Print Solutions -->
+              <circle cx="150" cy="230" r="22" fill="rgba(248,113,113,0.12)" stroke="var(--red)" stroke-width="2" style="animation:pulseBad 2s infinite"/>
+              <text x="150" y="225" fill="#f87171" font-size="8.5" font-family="DM Mono" text-anchor="middle">Print</text>
+              <text x="150" y="237" fill="#f87171" font-size="8.5" font-family="DM Mono" text-anchor="middle">Solutions</text>
+              <text x="150" y="259" fill="#64748b" font-size="7" font-family="DM Mono" text-anchor="middle">Regd: 2023</text>
+
+              <!-- Center label -->
+              <circle cx="260" cy="278" r="36" fill="rgba(248,113,113,0.04)" stroke="rgba(248,113,113,0.12)" stroke-width="1" stroke-dasharray="3 3"/>
+              <text x="260" y="273" fill="rgba(248,113,113,0.45)" font-size="8" font-family="DM Mono" text-anchor="middle">CLOSED</text>
+              <text x="260" y="285" fill="rgba(248,113,113,0.45)" font-size="8" font-family="DM Mono" text-anchor="middle">LOOP</text>
+
+              <!-- Legend -->
+              <line x1="20" y1="450" x2="46" y2="450" stroke="rgba(248,113,113,0.7)" stroke-width="2" stroke-dasharray="4 3"/>
+              <text x="50" y="454" fill="#94a3b8" font-size="8" font-family="DM Mono">Fraudulent flow</text>
+              <line x1="150" y1="450" x2="176" y2="450" stroke="rgba(245,158,11,0.8)" stroke-width="2" stroke-dasharray="4 3"/>
+              <text x="180" y="454" fill="#94a3b8" font-size="8" font-family="DM Mono">Recycled funds</text>
+              <line x1="290" y1="450" x2="316" y2="450" stroke="rgba(34,211,238,0.4)" stroke-width="1.5" stroke-dasharray="3 3"/>
+              <text x="320" y="454" fill="#94a3b8" font-size="8" font-family="DM Mono">Legitimate entry</text>
+
+            </svg>
+          </div>
+        </div>
+
+        <!-- Right: Money Trail Timeline + Stats -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+
+          <!-- Stats cards -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div style="background:var(--bg2);border:1px solid rgba(248,113,113,0.25);border-radius:12px;padding:16px">
+              <div style="font-family:var(--mono);font-size:0.6rem;color:var(--txt3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Entities in Ring</div>
+              <div style="font-size:2rem;font-weight:700;color:var(--red)">5</div>
+              <div style="font-size:0.72rem;color:var(--txt3);margin-top:2px">All registered 2023–24</div>
+            </div>
+            <div style="background:var(--bg2);border:1px solid rgba(245,158,11,0.25);border-radius:12px;padding:16px">
+              <div style="font-family:var(--mono);font-size:0.6rem;color:var(--txt3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Total Laundered</div>
+              <div style="font-size:1.4rem;font-weight:700;color:var(--amber)">₹1.9Cr</div>
+              <div style="font-size:0.72rem;color:var(--txt3);margin-top:2px">Across 6 cycles</div>
+            </div>
+            <div style="background:var(--bg2);border:1px solid rgba(34,211,238,0.15);border-radius:12px;padding:16px">
+              <div style="font-family:var(--mono);font-size:0.6rem;color:var(--txt3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Cycle Duration</div>
+              <div style="font-size:2rem;font-weight:700;color:var(--cyan)">3–7</div>
+              <div style="font-size:0.72rem;color:var(--txt3);margin-top:2px">days per loop</div>
+            </div>
+            <div style="background:var(--bg2);border:1px solid rgba(248,113,113,0.15);border-radius:12px;padding:16px">
+              <div style="font-family:var(--mono);font-size:0.6rem;color:var(--txt3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Address Match</div>
+              <div style="font-size:2rem;font-weight:700;color:var(--red)">3/5</div>
+              <div style="font-size:0.72rem;color:var(--txt3);margin-top:2px">Same registered office</div>
+            </div>
+          </div>
+
+          <!-- Money Trail Timeline -->
+          <div class="t-card" style="flex:1;padding:20px">
+            <div style="font-family:var(--mono);font-size:0.68rem;color:var(--amber);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:16px">💸 Money Trail — Cycle 1</div>
+            <div style="position:relative;padding-left:20px">
+              <!-- vertical line -->
+              <div style="position:absolute;left:6px;top:4px;bottom:4px;width:1px;background:linear-gradient(180deg,var(--red),rgba(248,113,113,0.1))"></div>
+
+              <div style="margin-bottom:14px;position:relative">
+                <div style="position:absolute;left:-17px;top:3px;width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 6px var(--cyan)"></div>
+                <div style="font-family:var(--mono);font-size:0.65rem;color:var(--txt3)">24 Sep 2024 · 01:14 AM</div>
+                <div style="font-size:0.82rem;color:var(--txt);margin-top:1px">Public Bank → <span style="color:var(--red)">Stationery L.T.D</span></div>
+                <div style="font-family:var(--mono);font-size:0.75rem;color:var(--amber)">₹14,25,000</div>
+              </div>
+
+              <div style="margin-bottom:14px;position:relative">
+                <div style="position:absolute;left:-17px;top:3px;width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 6px var(--red)"></div>
+                <div style="font-family:var(--mono);font-size:0.65rem;color:var(--txt3)">25 Sep 2024 · 11:42 PM</div>
+                <div style="font-size:0.82rem;color:var(--txt);margin-top:1px"><span style="color:var(--red)">Stationery L.T.D</span> → <span style="color:var(--red)">Stationery Ltd</span></div>
+                <div style="font-family:var(--mono);font-size:0.75rem;color:var(--red)">₹13,80,000 <span style="color:var(--txt3);font-size:0.65rem">(−3.2% "fee")</span></div>
+              </div>
+
+              <div style="margin-bottom:14px;position:relative">
+                <div style="position:absolute;left:-17px;top:3px;width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 6px var(--red)"></div>
+                <div style="font-family:var(--mono);font-size:0.65rem;color:var(--txt3)">27 Sep 2024 · 09:05 PM</div>
+                <div style="font-size:0.82rem;color:var(--txt);margin-top:1px"><span style="color:var(--red)">Stationery Ltd</span> → <span style="color:var(--red)">Office Plus</span></div>
+                <div style="font-family:var(--mono);font-size:0.75rem;color:var(--red)">₹22,00,000</div>
+              </div>
+
+              <div style="margin-bottom:14px;position:relative">
+                <div style="position:absolute;left:-17px;top:3px;width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 6px var(--red)"></div>
+                <div style="font-family:var(--mono);font-size:0.65rem;color:var(--txt3)">29 Sep 2024 · 03:28 AM</div>
+                <div style="font-size:0.82rem;color:var(--txt);margin-top:1px"><span style="color:var(--red)">Office Plus</span> → <span style="color:var(--red)">Global Pens</span></div>
+                <div style="font-family:var(--mono);font-size:0.75rem;color:var(--red)">₹8,12,500</div>
+              </div>
+
+              <div style="position:relative">
+                <div style="position:absolute;left:-17px;top:3px;width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 6px var(--amber)"></div>
+                <div style="font-family:var(--mono);font-size:0.65rem;color:var(--txt3)">30 Sep 2024 · 10:15 PM</div>
+                <div style="font-size:0.82rem;color:var(--txt);margin-top:1px"><span style="color:var(--red)">Print Solutions</span> → <span style="color:var(--amber)">Stationery L.T.D ↩</span></div>
+                <div style="font-family:var(--mono);font-size:0.75rem;color:var(--amber)">₹4,55,000 <span style="color:var(--txt3);font-size:0.65rem">(recycled)</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom: Address & Director overlap panel -->
+      <div class="t-card">
+        <h3>Shell Entity Intelligence <span>Common Attributes</span></h3>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
+          <!-- Each entity card -->
+          <div style="background:var(--bg3);border-radius:10px;padding:14px;border-top:2px solid var(--red)">
+            <div style="font-family:var(--mono);font-size:0.7rem;color:var(--red);margin-bottom:8px;font-weight:600">Stationery L.T.D</div>
+            <div style="font-size:0.72rem;color:var(--txt3);margin-bottom:4px">📍 14 MG Road, Delhi</div>
+            <div style="font-size:0.72rem;color:var(--txt3);margin-bottom:4px">👤 Dir: R. Sharma</div>
+            <div style="font-size:0.72rem;color:var(--txt3);margin-bottom:8px">📅 Regd: Mar 2024</div>
+            <span style="background:var(--red-dim);color:var(--red);font-family:var(--mono);font-size:0.58rem;padding:2px 6px;border-radius:3px">MAIN HUB</span>
+          </div>
+          <div style="background:var(--bg3);border-radius:10px;padding:14px;border-top:2px solid rgba(248,113,113,0.5)">
+            <div style="font-family:var(--mono);font-size:0.7rem;color:var(--red);margin-bottom:8px;font-weight:600">Stationery Ltd</div>
+            <div style="font-size:0.72rem;color:var(--txt3);margin-bottom:4px">📍 <span style="color:var(--amber)">14 MG Road, Delhi</span></div>
+            <div style="font-size:0.72rem;color:var(--txt3);margin-bottom:4px">👤 Dir: P. Sharma</div>
+            <div style="font-size:0.72rem;color:var(--txt3);margin-bottom:8px">📅 Regd: Jan 2024</div>
+            <span style="background:var(--amber-dim);color:var(--amber);font-family:var(--mono);font-size:0.58rem;padding:2px 6px;border-radius:3px">ADDR MATCH ⚠</span>
+          </div>
+          <div style="background:var(--bg3);border-radius:10px;padding:14px;border-top:2px solid rgba(248,113,113,0.5)">
+            <div style="font-family:var(--mono);font-size:0.7rem;color:var(--red);margin-bottom:8px;font-weight:600">Office Plus</div>
+            <div style="font-size:0.72rem;color:var(--txt3);margin-bottom:4px">📍 Unit 3B, Noida</div>
+            <div style="font-size:0.72rem;color:var(--txt3);margin-bottom:4px">👤 Dir: R. Sharma</div>
+            <div style="font-size:0.72rem;color:var(--txt3);margin-bottom:8px">📅 Regd: Nov 2023</div>
+            <span style="background:var(--amber-dim);color:var(--amber);font-family:var(--mono);font-size:0.58rem;padding:2px 6px;border-radius:3px">DIR MATCH ⚠</span>
+          </div>
+          <div style="background:var(--bg3);border-radius:10px;padding:14px;border-top:2px solid rgba(248,113,113,0.5)">
+            <div style="font-family:var(--mono);font-size:0.7rem;color:var(--red);margin-bottom:8px;font-weight:600">Global Pens</div>
+            <div style="font-size:0.72rem;color:var(--txt3);margin-bottom:4px">📍 <span style="color:var(--amber)">14 MG Road, Delhi</span></div>
+            <div style="font-size:0.72rem;color:var(--txt3);margin-bottom:4px">👤 Dir: S. Kumar</div>
+            <div style="font-size:0.72rem;color:var(--txt3);margin-bottom:8px">📅 Regd: Feb 2024</div>
+            <span style="background:var(--amber-dim);color:var(--amber);font-family:var(--mono);font-size:0.58rem;padding:2px 6px;border-radius:3px">ADDR MATCH ⚠</span>
+          </div>
+          <div style="background:var(--bg3);border-radius:10px;padding:14px;border-top:2px solid rgba(248,113,113,0.5)">
+            <div style="font-family:var(--mono);font-size:0.7rem;color:var(--red);margin-bottom:8px;font-weight:600">Print Solutions</div>
+            <div style="font-size:0.72rem;color:var(--txt3);margin-bottom:4px">📍 SCO 44, Gurugram</div>
+            <div style="font-size:0.72rem;color:var(--txt3);margin-bottom:4px">👤 Dir: P. Sharma</div>
+            <div style="font-size:0.72rem;color:var(--txt3);margin-bottom:8px">📅 Regd: Sep 2023</div>
+            <span style="background:var(--amber-dim);color:var(--amber);font-family:var(--mono);font-size:0.58rem;padding:2px 6px;border-radius:3px">DIR MATCH ⚠</span>
+          </div>
+        </div>
+        <div style="margin-top:16px;padding:14px;background:linear-gradient(135deg,rgba(248,113,113,0.08),rgba(245,158,11,0.04));border-radius:8px;font-size:0.84rem;color:var(--txt2);line-height:1.7;border:1px solid rgba(248,113,113,0.15)">
+          <strong style="color:var(--red)">Forensic Conclusion:</strong> 3 of 5 entities share the same registered address (14 MG Road, Delhi). 2 directors appear across multiple entities. All 5 companies were registered within 18 months. Zero prior transaction history. Pattern is consistent with a <strong style="color:var(--txt)">Layer & Integration stage money laundering scheme</strong> as defined under PMLA 2002.
+        </div>
+      </div>
+
+    </div>
+
+    <div class="tab-content" id="tab-ex">
+      <div class="t-card" style="max-width:800px;margin:0 auto">
+        <h3>AI Model Inference Breakdown <span>Risk = 0%</span></h3>
+        <p style="font-size:0.85rem;color:var(--txt2);margin-bottom:32px" id="ex-desc">Awaiting model execution to analyze feature weights and anomaly drivers.</p>
+        <div id="ex-bars">
+          <!-- Dynamic feature bars injected by ML Engine -->
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. TRANSACTION TABLE -->
+<section id="transactions" class="table-section">
+  <div class="label">Interactive Vouching</div>
+  <div class="h2">Transaction <span>Investigation</span></div>
+  
+  <div class="lock-blur" id="tv-lock">
+    <!-- Top row: risk filters + add button -->
+    <div class="t-controls">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span class="filter-label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+          </svg>
+          Filter
+        </span>
+        <div class="t-filters" id="risk-filters">
+          <button class="t-filter active" onclick="filt(this, 'all')">All</button>
+          <button class="t-filter" onclick="filt(this, 'high')">High Risk</button>
+          <button class="t-filter" onclick="filt(this, 'suspicious')">Suspicious</button>
+          <button class="t-filter" onclick="filt(this, 'safe')">Safe</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="open-add-tx" onclick="openAddTx()" style="padding:10px 22px;font-size:0.78rem;display:none">➕ Add Transaction</button>
+    </div>
+
+    <!-- Second row: column filter + smart search -->
+    <div class="search-row" style="margin-bottom:20px">
+      <select class="col-filter-select" id="col-filter-select" onchange="smartSearch()">
+        <option value="all">All Columns</option>
+        <!-- CSV columns injected here by JS -->
+      </select>
+      <div class="search-wrap">
+        <span class="s-icon">🔍</span>
+        <input type="text" class="search-box" id="search-in"
+          placeholder="Search transactions..."
+          oninput="smartSearch()">
+      </div>
+      <span id="search-count-pill" class="search-count-pill" style="display:none"></span>
+    </div>
+
+    <div class="tx-table-wrap">
+      <table class="tx-table" id="tx-table">
+        <thead>
+          <tr>
+            <th width="40"></th>
+            <th>TX ID</th>
+            <th>DATE</th>
+            <th>VENDOR</th>
+            <th>AMOUNT (₹)</th>
+            <th>RISK LEVEL</th>
+          </tr>
+        </thead>
+        <tbody id="tx-body">
+          <!-- Rows -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</section>
+
+<!-- ADD TRANSACTION MODAL -->
+<div id="add-tx-overlay">
+  <div class="add-tx-modal">
+    <h2>➕ Add New Transaction</h2>
+    <div class="sub" id="add-tx-sub">Fill in the fields below — columns match your uploaded CSV.</div>
+    <div class="lt-form-grid" id="lt-form-grid">
+      <!-- Dynamic fields built from CSV headers -->
+    </div>
+    <div class="lt-form-actions">
+      <button class="btn btn-secondary" onclick="closeAddTx()" style="padding:12px 24px">Cancel</button>
+      <button class="btn btn-primary" onclick="ltAddRow()" style="padding:12px 28px">✓ Add to Ledger</button>
+      <button class="btn btn-secondary" onclick="ltDownloadCsv()" style="padding:12px 24px">⬇ Download CSV</button>
+      <span class="lt-row-count" id="lt-row-count"></span>
+    </div>
+  </div>
+</div>
+
+<!-- Import Success Toast -->
+<div id="import-toast">✓ <span id="toast-msg">0 transactions imported successfully!</span></div>
+
+<!-- ====== CHATBOT PANEL ====== -->
+<div id="chatbot-panel">
+  <div class="chat-header">
+    <div class="chat-header-icon">🤖</div>
+    <div class="chat-header-info">
+      <div class="ch-name">LedgerSpy AI</div>
+      <div class="ch-status">Online — Forensic Mode</div>
+    </div>
+    <button class="chat-close" onclick="toggleChatbot()" title="Close">&times;</button>
+  </div>
+  <div class="chat-messages" id="chat-messages">
+    <div class="chat-msg bot">
+      <div class="msg-label">AI Assistant</div>
+      👋 I'm your <strong>LedgerSpy AI</strong> forensic assistant. I can analyze transactions, explain risk scores, and help you investigate anomalies.<br><br>
+      Upload a CSV and run a scan to get started. Then ask me anything about the data!
+    </div>
+  </div>
+  <div class="chat-suggestions" id="chat-suggestions">
+    <button class="chat-sug" onclick="chatSuggest(this)">📊 Show summary</button>
+    <button class="chat-sug" onclick="chatSuggest(this)">⚠️ High risk transactions</button>
+    <button class="chat-sug" onclick="chatSuggest(this)">🔍 Explain risk score</button>
+    <button class="chat-sug" onclick="chatSuggest(this)">💡 Top anomalies</button>
+  </div>
+  <div class="chat-input-area">
+    <input type="text" class="chat-input" id="chat-input" placeholder="Ask about transactions, risk, anomalies..." onkeydown="if(event.key==='Enter')sendChat()">
+    <button class="chat-send" onclick="sendChat()" title="Send">▶</button>
+  </div>
+</div>
+
+<!-- 6 & 7. INSIGHTS & REPORT -->
+<section id="insights" class="insights-section">
+  <div class="label">Final Deliverable</div>
+  <div class="h2">Audit <span>Conclusions</span></div>
+
+  <div class="insights-grid lock-blur" id="rp-lock">
+    
+    <div style="display:flex;flex-direction:column;gap:24px">
+      <div class="t-card" style="border-left:4px solid var(--amber)">
+        <div style="font-family:var(--mono);font-size:0.75rem;color:var(--txt3);margin-bottom:8px">TOTAL DETECTED FRAUD</div>
+        <div style="font-size:2rem;font-weight:700;color:var(--txt)">₹0</div>
+      </div>
+      <div class="t-card">
+        <div style="font-family:var(--mono);font-size:0.75rem;color:var(--txt3);margin-bottom:8px">ENTITIES INVOLVED</div>
+        <div style="font-size:1.5rem;font-weight:600;color:var(--txt)">0 Vendors</div>
+      </div>
+      <div class="t-card" style="background:var(--red-dim);border:1px solid rgba(248,113,113,0.3)">
+        <div style="font-family:var(--mono);font-size:0.75rem;color:var(--red);margin-bottom:8px">PRIMARY PATTERN</div>
+        <div style="font-size:1.5rem;font-weight:600;color:var(--txt)">Pending Scan...</div>
+      </div>
+    </div>
+
+        <div class="report-panel">
+      <div class="report-doc" id="print-doc">
+        <h1>Forensic Audit Memo</h1>
+        <p style="text-align:center;font-family:var(--mono);font-size:0.7rem;margin-bottom:32px;color:var(--txt3)">GENERATED BY LEDGERSPY SYSTEM • STRICTLY CONFIDENTIAL</p>
+
+        <h3>1. Executive Summary</h3>
+        <p>An automated forensic analysis of the ledger database was completed. The AI models have successfully isolated 0 distinct high-risk transactions representing ₹0 in potentially illicit disbursements.</p>
+
+        <h3>2. Key Findings</h3>
+        <ul>
+          <li><strong>Digital Fabrication:</strong> Benford's Law analysis showed a 140% positive variance on leading digit '7'.</li>
+          <li><strong>Textual Collision:</strong> Fuzzy string algorithms matched "Stationery L.T.D" with legitimate vendor "Stationery Ltd" (94% similarity).</li>
+          <li><strong>Unorthodox Timing:</strong> 65% of flagged payments were processed between 11:00 PM and 2:00 AM local time.</li>
+        </ul>
+
+        <h3>3. Risk Assessment</h3>
+        <p>The global ledger anomaly score is calculated at <strong>87% (SEVERE RISK)</strong>. The multi-dimensional outlier scan confirms intentional evasion tactics rather than standard clerical errors.</p>
+
+        <h3>4. Detailed Observations</h3>
+        <p>A sub-graph relational mapping strongly indicates a <strong>Circular Trading Ring</strong> involving 5 newly incorporated entities. Cash flow analysis proves disbursements cycle rapidly across these entities before terminating.</p>
+
+        <h3>5. Official Recommendations</h3>
+        <ul>
+          <li>Initiate immediate manual vouching of all transactions linking to "Stationery L.T.D".</li>
+          <li>Conduct physical verification of the registered addresses for the 5 flagged shell entities.</li>
+          <li>Freeze scheduled outgoing payments to the identified nodes pending legal review.</li>
+        </ul>
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="alert('Starting secure download of Audit_Memo_FY24.pdf...')">
+        ↓ Download PDF Report
+      </button>
+    </div>
+
+  </div>
+</section>
+
+<!-- Footer -->
+<footer style="padding:40px 5%;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg0);margin-top:60px">
+  <div style="font-family:var(--mono);font-size:0.85rem;color:var(--txt3);">Ledger<em>Spy</em> — AI Forensic Audit</div>
+  <div style="font-family:var(--mono);font-size:0.75rem;color:var(--txt3)">100% Offline operation. System Secured.</div>
+</footer>
+
+<script src="js/data-pipeline.js"></script>
+<script src="js/ui-core.js"></script>
+<script src="js/ml-engine.js"></script>
+<script src="js/chatbot-ui.js"></script>
+</body>
+</html>
+
